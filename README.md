@@ -8,7 +8,7 @@ Rotating a cube in Three.js with Arduino
 
 <img width="3560" height="2062" alt="Screenshot 2026-10-15 at 22 41 47" src="https://github.com/user-attachments/assets/e1d547e4-5141-4410-b5e6-1c665a8849cc" />
 
-
+This project uses X and Y axis sensor data from a joystick to rotate a cube in your web browser using Three.js and javascript 
 
 https://github.com/user-attachments/assets/3efd6559-b054-45f5-95c5-e3ee2060d5e2
 
