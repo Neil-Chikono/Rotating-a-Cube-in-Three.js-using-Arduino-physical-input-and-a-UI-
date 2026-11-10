@@ -2,6 +2,9 @@
 Rotating a cube in Three.js with Arduino 
 <img width="3560" height="2062" alt="Screenshot 2026-10-15 at 20 42 08" src="https://github.com/user-attachments/assets/49c4e512-da51-4ea2-9ad6-56bb81d00e10" />
 
+<img width="3574" height="2078" alt="Screenshot 2026-11-10 at 20 46 06" src="https://github.com/user-attachments/assets/b2d37f1f-3033-4ead-8193-8b8bccf56839" />
+
+
 
 <img width="3560" height="2062" alt="Screenshot 2026-10-15 at 22 41 47" src="https://github.com/user-attachments/assets/e1d547e4-5141-4410-b5e6-1c665a8849cc" />
 
