@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js GLTF Model Viewer</title>
+    <style>
+        body { 
+            background-image: url('seal-background.png'); 
+  background-size: cover; 
+  background-position: center; 
+  background-repeat: no-repeat; 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: Arial, sans-serif;
+        }
+        #container { 
+            position: absolute; 
+            width: 100%; 
+            height: 100%; 
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #377d39;
+            background-image: url('green greeeeen.png'); 
+  background-size: cover; 
+  background-position: center; 
+  background-repeat: no-repeat; 
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            background: #4CAF50;
+            background-image: url('green dots.png'); 
+  background-size: cover; 
+  background-position: center;
+  background-repeat: no-repeat;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container"></div>
+    <div id="loading">Loading model...</div>
+    <div id="controls">
+        
+        <button id="playPause">Rotate</button>
+        <button id="next"> Rotate</button>
+        <button id="reset">Reset</button>
+        <button id="automatic">Automatic</button>
+        <div> <span id=""></span></div>
+        <div><span id=""></span></div>
+         <button id="connectArduino">Connect Arduino</button>
+         <p id="arduinoStatus">Not connected</p>
+    </div>
+
+
+
+    <!-- Import Three.js and GLTF loader -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+
+let port;
+let reader;
+let isReading = false;
+
+let joystickX = 512;
+let joystickY = 512;
+
+const connectButton = document.getElementById("connectArduino");
+
+connectButton.addEventListener("click", async () => {
+    try {
+        // Don't open an already-open port
+        if (port && port.readable) {
+            console.log("Arduino is already connected.");
+            return;
+        }
+
+        port = await navigator.serial.requestPort();
+
+        if (!port.readable) {
+            await port.open({ baudRate: 9600 });
+        }
+
+        reader = port.readable.getReader();
+
+        readArduino();
+
+    } catch (error) {
+        console.error("Arduino connection error:", error);
+    }
+});
+
+async function readArduino() {
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (port && port.readable) {
+        const { value, done } = await reader.read();
+
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+
+        for (const line of lines) {
+            const values = line.trim().split(",");
+
+            if (values.length === 2) {
+                joystickX = Number(values[0]);
+                joystickY = Number(values[1]);
+
+                console.log(joystickX, joystickY);
+            }
+        }
+    }
+}
+
+
+        // Wait for the page to load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Scene setup
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xdddddd);
+            
+            // Camera setup
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(5, 5, 5);
+            
+            // Renderer setup
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            // Add orbit controls
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            
+            // Add lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            
+            // Add a grid helper
+            //const gridHelper = new THREE.GridHelper(10, 10, #FF0000, #FF0000);
+            //scene.add(gridHelper);
+            
+            // Load GLTF model
+            const loader = new THREE.GLTFLoader();
+            
+       // place my 3d model file 
+       let model;
+
+loader.load(
+    'crosscube.glb',
+    (gltf) => {
+        model = gltf.scene;
+        scene.add(model);
+
+        document.getElementById('loading').style.display = 'none';
+    },
+    undefined,
+    (error) => {
+        console.error('Error loading model', error);
+    }
+);
+            
+
+
+
+            const textureLoader = new THREE.TextureLoader();
+        textureLoader.load('h tree 2 .png', function(texture) {
+            scene.background = texture;
+        });
+
+
+
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            
+            // Animation loop
+            function animate() {
+               
+                if (model) {
+
+                    const x = (joystickX - 512) / 512;
+                    const y = (joystickY - 512) / 512;
+
+                    model.rotation.y += x * 0.2;
+                    model.rotation.x += y * 0.2;
+
+
+                }
+                   
+                
+                controls.update();
+            
+                requestAnimationFrame(animate);
+
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+        });
+    </script>
+</body>
+</html>
